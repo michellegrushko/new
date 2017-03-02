@@ -4,7 +4,7 @@ author: "Michelle Grushko"
 date: "February 14, 2017"
 output: github_document:  
 ---
-
+ADDED SOMETHING
 Before inserting the dataset into R, I converted the excel workbook file into a csv and took out any additional characters that might be problematic. Then, I loaded the data into R
 
 ```{r, echo = FALSE}
