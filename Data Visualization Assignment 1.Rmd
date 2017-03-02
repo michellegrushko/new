@@ -6,6 +6,7 @@ output: github_document:
 ---
 branch changes
 branch change 2
+something else
 ADDED SOMETHING
 Before inserting the dataset into R, I converted the excel workbook file into a csv and took out any additional characters that might be problematic. Then, I loaded the data into R
 
