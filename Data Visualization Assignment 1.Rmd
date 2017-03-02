@@ -1,0 +1,199 @@
+---
+title: "Data Visualization Assignment 1"
+author: "Michelle Grushko"
+date: "February 14, 2017"
+output: github_document:  
+---
+
+Before inserting the dataset into R, I converted the excel workbook file into a csv and took out any additional characters that might be problematic. Then, I loaded the data into R
+
+```{r, echo = FALSE}
+#will not run the code but will show the
+#scatterplot
+
+#exploratory graph
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) +
+  scale_x_log10("Population",labels = scales::trans_format("log10", scales::math_format(10^.x)))
+
+#scatterplot of Population and Registration Rates of Births
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) +
+  scale_x_log10("Population",labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+  scale_y_continuous("Registration Rates of Births") +
+  theme_tufte() + theme(legend.position="none") +
+  ggtitle("Population vs Registration of Births") +
+  geom_point(aes(color = Region))+
+  geom_smooth(lwd = 2, se = TRUE)
+
+
+#keep this one, by region
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) +geom_smooth(color = "Black", lwd = 2, se = FALSE) + geom_point(aes(color = Region)) + 
+        facet_grid( . ~ Region) + 
+  scale_x_log10("Population",
+                labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+        scale_y_continuous("Registration Rates of Births") + theme_tufte() + theme(legend.position="none") + ggtitle("Population vs Registration of Births") 
+
+#do not keep
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) + 
+    scale_x_log10("Population",
+                  labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    scale_y_continuous("Registration Rates of Births") + theme_tufte() + theme(legend.position="none") + ggtitle("Population vs Registration of Births") +
+    geom_point(aes(color = Region))+
+    + scale_size_continuous(name="Reg.Pop..", range = c(1,5))
+geom_smooth(lwd = 2, se = TRUE)
+```
+
+```{r}
+#scatterplot
+id4 <- read.csv(file.choose(), header = TRUE, stringsAsFactors = FALSE)
+library(ggplot2)
+id4$Region[id4$Region == ""] <- NA
+
+ggplot(data = id4, aes(x = Population, y = BirthReg)) + geom_point()
+
+ggplot(data = id4, aes(x = Population, y = BirthReg)) + geom_point(aes(color = Region))
+
+library(ggthemes)
+id4_new <- id4[is.na(id4$Region) != TRUE, ]
+id4_new$Region
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) + geom_point(aes(color = Region)) + 
+        facet_grid( . ~ Region) + scale_x_continuous("Population") +
+        scale_y_continuous("Registration Rates of Births") + theme_tufte() + theme(legend.position="none") + ggtitle("Population vs Registration of Births")
+
+
+
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) + geom_point(aes(color = Region)) + 
+        facet_grid( . ~ Region) + 
+  scale_x_log10("Population",
+                labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+        scale_y_continuous("Registration Rates of Births") + theme_tufte() + theme(legend.position="none") + ggtitle("Population vs Registration of Births") + geom_smooth(color = "Black", lwd = 2, se = FALSE)
+
+ggplot(data = id4_new, aes(x = Population, y = BirthReg), na.rm = TRUE) +geom_smooth(color = "Black", lwd = 2, se = FALSE) + geom_point(aes(color = Region)) + 
+        facet_grid( . ~ Region) + 
+  scale_x_log10("Population",
+                labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+        scale_y_continuous("Registration Rates of Births") + theme_tufte() + theme(legend.position="none") + ggtitle("Population vs Registration of Births") 
+#brings points over the fitting line
+```
+
+```{r}
+#Bar graph of mean of male and females registered per region
+library(plyr)
+Female <- ddply(id4_new[id4_new$Region != "",], "Region", summarise, mean = mean(Registered.Female, na.rm = TRUE))
+Male <- ddply(id4_new[id4_new$Region != "",], "Region", summarise, mean = mean(Registered.Male, na.rm = TRUE))
+Female$gender <- "Female"
+Male$gender <- "Male"
+
+data <- rbind(Male, Female)
+ggplot(data, aes(x = Region, y = mean, fill = gender)) + geom_bar(stat = "identity") + 
+    xlab("Region") + ylab("Average Registered") +
+    ggtitle("Average Male and Female Registration per Region") +
+  theme_tufte()
+
+ggplot(data, aes(x = Region, y = mean, fill = gender)) + geom_bar(stat = "identity") +
+  coord_flip() +
+  xlab("Region") + ylab("Average Registered") +
+  ggtitle("Average Male and Female Registration per Region") +
+  theme_tufte()
+#flipped on its side
+```
+
+```{r}
+#line graph
+
+library(dplyr)
+by_male_female <- group_by(id4_new, Registered.Male, Registered.Female, Unreg.F, Unreg.M)
+geom_line(aes(group=by_male_female,
+                  color = "black")) +
+    scale_color_manual(values=c("gray40", "firebrick")) +
+    scale_x_date() + 
+    labs(x="Year",
+         y="Donors",
+         color="Consent Law") +
+    theme(legend.position="top")
+
+ggplot(data=id4_new, aes(x=Region, y=Population, group=by_male_female)) +
+    geom_line() +
+    geom_point()
+```
+
+```{r}
+Dotplot
+library(dplyr)
+#average by group, male registered, female registered, male unregistered, female unregistered, by region 
+
+
+Female_Unreg <- ddply(id4_new[id4_new$Region != "",], "Region", summarise, mean = mean(Unreg.F, na.rm = TRUE))
+Male_Unreg <- ddply(id4_new[id4_new$Region != "",], "Region", summarise, mean = mean(Unreg.M, na.rm = TRUE))
+Female_Unreg$gender <- "FemaleUnregistered"
+Male_Unreg$gender <- "MaleUnregistered"
+data <- rbind(Male, Female, Male_Unreg, Female_Unreg)
+
+ggplot(data, aes(x = mean  , y = Region, color = gender )) + geom_point(size = 5)+ theme_tufte()
+
+ggplot(data, aes(x = mean  , y = Region)) +
+  geom_jitter(aes(color = Region), position = position_jitter(width=0.30)) +
+  xlab("Average Count of Registered/Unregistered")+
+  ylab("Region") +
+  theme_tufte() 
+
+ggplot(data, aes(x = mean  , y = Region)) +
+  geom_jitter(aes(color = gender), position = position_jitter(width=0.30)) +
+  xlab("Average Count of Registered/Unregistered")+
+  ylab("Region") +
+  theme_tufte() 
+ 
+```
+
+```{r}
+#boxplot, income levels vs registered/unregistered females filled by region
+ggplot(data=id4_new,aes(x=Level,y= Registered.Female)) + scale_y_log10() + geom_boxplot()
+
+ggplot(data=id4_new,aes(x=Level,y= Registered.Female)) + scale_y_log10() + geom_boxplot(aes(fill=Region)) + theme_tufte()
+
+ggplot(data=id4_new,aes(x=Level,y= Unreg.F)) + scale_y_log10() + geom_boxplot(aes(fill=Region)) + theme_tufte()
+                                                                              
+```
+
+
+```{r}
+#another scatterplot Birth Registration by Income Level
+ggplot(id4_new, aes(x = BirthReg  , y = Level)) +
+  scale_x_log10() +
+  geom_jitter(aes(color = Population), position = position_jitter(width=0.30)) +
+  xlab("Registration at Birth")+
+  ylab("Income Level") +
+  theme_tufte() 
+
+ ggplot(id4_new, aes(x = BirthReg  , y = Level, color = Population, alpha = 0.5, size = 5)) +
++     scale_x_log10() + geom_point()+
++     xlab("Registration at Birth")+
++     ylab("Income Level") +
++     theme_tufte() 
+ 
+ggplot(id4_new, aes(x = BirthReg  , y = Level, alpha = 0.5, size = 5, color = Population)) +
++     scale_x_log10() + geom_point()+
++     xlab("Registration at Birth")+
++     ylab("Income Level") +
++     theme_tufte() 
+
+ggplot(id4_new, aes(x = BirthReg  , y = Level, color = Population)) +
+   scale_x_log10() + geom_point() +
+  xlab("Registration at Birth") +
+  ylab("Income Level") +
+  theme_tufte()
+
+ggplot(id4_new, aes(x = BirthReg  , y = Level, color = Population)) +
+   scale_x_log10() + geom_point( aes(alpha = 0.5, size = 5)) +
+  xlab("Registration at Birth") +
+  ylab("Income Level") +
+  theme_tufte() +  theme(legend.position="none") +
+  ggtitle("Registration of Births by Income Level")
+  
+
+#South asia has the greatest number of unregistered females 
+```
+
+```{r}
+
+```
+
